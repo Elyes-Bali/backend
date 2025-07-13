@@ -11,7 +11,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/saved-posts")
-@CrossOrigin(origins = "http://localhost:4200")
+@CrossOrigin(origins = {"http://localhost:4200", "http://192.168.50.4:4200"})
 public class SavedPostController {
     @Autowired
     private SavedPostService savedPostService;

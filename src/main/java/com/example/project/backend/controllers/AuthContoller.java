@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:4200/")
+@CrossOrigin(origins = {"http://localhost:4200", "http://192.168.50.4:4200"})
 public class AuthContoller {
     private final AuthenticationManager authenticationManager;
 

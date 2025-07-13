@@ -17,7 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 @RestController
 @RequestMapping("/posts")
-@CrossOrigin(origins = "http://localhost:4200")
+@CrossOrigin(origins = {"http://localhost:4200", "http://192.168.50.4:4200"})
 public class PostController {
     @Autowired
     private PostServiceImpl postService;

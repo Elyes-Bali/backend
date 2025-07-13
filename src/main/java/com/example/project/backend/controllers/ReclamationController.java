@@ -10,7 +10,7 @@ import java.util.List;
 
 @RestController
 @AllArgsConstructor
-@CrossOrigin(origins = "http://localhost:4200")
+@CrossOrigin(origins = {"http://localhost:4200", "http://192.168.50.4:4200"})
 @RequestMapping("/reclamations")
 public class ReclamationController {
     @Autowired
