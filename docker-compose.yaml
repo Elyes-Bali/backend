@@ -22,7 +22,7 @@ services:
     container_name: api_service
     #restart: always
     ports:
-      - "8080:8080"
+      - "8090:8080"
     networks:
       - springapimysql-net
     environment:
