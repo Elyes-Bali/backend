@@ -10,38 +10,38 @@ import com.example.project.backend.repositories.UserRepository;
 import com.example.project.backend.services.mailing.MailService;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDate;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
-public class AuthServiceImpl implements AuthService{
+public class AuthServiceImpl implements AuthService {
+
     @Autowired
     private UserRepository userRepository;
 
     @Autowired
-    private BCryptPasswordEncoder bCryptPasswordEncoder;
+    private PasswordEncoder passwordEncoder;
+
     @Autowired
     private CloudinaryService cloudinaryService;
 
     @Autowired
     private MailService mailService;
 
-
-    public UserDto createUser(SignupRequest signupRequest){
+    public UserDto createUser(SignupRequest signupRequest) {
         User user = new User();
 
         user.setEmail(signupRequest.getEmail());
         user.setName(signupRequest.getName());
-        user.setPassword(bCryptPasswordEncoder.encode(signupRequest.getPassword()));
+        user.setPassword(passwordEncoder.encode(signupRequest.getPassword()));
         user.setRole(signupRequest.getUserRole() != null ? signupRequest.getUserRole() : UserRole.PATIENT);
 
         if (signupRequest.getUserRole() == UserRole.DOCTOR) {
@@ -56,10 +56,10 @@ public class AuthServiceImpl implements AuthService{
                 return availability;
             }).collect(Collectors.toSet());
             user.setAvailabilities(availabilities);
-        }else if (signupRequest.getUserRole() == UserRole.PHARMACY) {
+        } else if (signupRequest.getUserRole() == UserRole.PHARMACY) {
             user.setVerified(false);
             user.setMatricule(signupRequest.getMatricule());
-        }else {
+        } else {
             user.setVerified(true);
         }
 
@@ -70,24 +70,27 @@ public class AuthServiceImpl implements AuthService{
         return userDto;
     }
 
-    public Boolean hasUserWithEmail(String email){
-        return  userRepository.findFirstByEmail(email).isPresent();
+    public Boolean hasUserWithEmail(String email) {
+        return userRepository.findFirstByEmail(email).isPresent();
     }
 
     @PostConstruct
-    public void createAdminAccount(){
+    public void createAdminAccount() {
         User adminAccount = userRepository.findByRole(UserRole.ADMIN);
-        if (null == adminAccount){
+        if (adminAccount == null) {
             User user = new User();
             user.setEmail("admin@gmail.com");
             user.setName("admin");
             user.setRole(UserRole.ADMIN);
-            user.setPassword(bCryptPasswordEncoder.encode("admin"));
+            user.setPassword(passwordEncoder.encode("admin"));
             userRepository.save(user);
         }
     }
 
-    public UserDto updateUser(Long userId, String name, String email, String education, String experience, String statement, String skills, String address, Long number,String eAddress,String speciality,String matricule, Boolean verified, MultipartFile image,MultipartFile signature, LocalDate birthDate) throws IOException {
+    public UserDto updateUser(Long userId, String name, String email, String education, String experience,
+                               String statement, String skills, String address, Long number, String eAddress,
+                               String speciality, String matricule, Boolean verified,
+                               MultipartFile image, MultipartFile signature, LocalDate birthDate) throws IOException {
         Optional<User> userOpt = userRepository.findById(userId);
         if (!userOpt.isPresent()) {
             throw new RuntimeException("User not found");
@@ -108,33 +111,30 @@ public class AuthServiceImpl implements AuthService{
         if (eAddress != null) user.setEAddress(eAddress);
         if (speciality != null) user.setSpeciality(speciality);
         if (matricule != null) user.setMatricule(matricule);
-        if (verified != null) {
-            user.setVerified(verified);  // Boolean value will directly update the field
-        }
-        // Handle image upload
+        if (verified != null) user.setVerified(verified);
+
         if (image != null && !image.isEmpty()) {
-            // Convert MultipartFile to a byte array
             byte[] imageBytes = image.getBytes();
             String imageUrl = cloudinaryService.uploadImage(imageBytes);
-            user.setImgUrl(imageUrl);  // Save the image URL
+            user.setImgUrl(imageUrl);
         }
 
         if (signature != null && !signature.isEmpty()) {
-            // Convert MultipartFile to a byte array
             byte[] signatureBytes = signature.getBytes();
             String signatureUrl = cloudinaryService.uploadImage(signatureBytes);
-            user.setSignatureUrl(signatureUrl);  // Save the image URL
+            user.setSignatureUrl(signatureUrl);
         }
+
         if (birthDate != null) user.setBirthDate(birthDate);
+
         userRepository.save(user);
 
         if (user.getRole() == UserRole.DOCTOR && !wasPreviouslyVerified && verified != null && verified) {
             mailService.sendDoctorVerificationEmail(user.getEmail(), user.getName());
-        }else if (user.getRole() == UserRole.PHARMACY && !wasPreviouslyVerified && verified != null && verified) {
+        } else if (user.getRole() == UserRole.PHARMACY && !wasPreviouslyVerified && verified != null && verified) {
             mailService.sendPharmacyVerificationEmail(user.getEmail(), user.getName());
         }
 
-        // Convert to UserDto and return
         UserDto userDto = new UserDto();
         userDto.setId(user.getId());
         userDto.setName(user.getName());
