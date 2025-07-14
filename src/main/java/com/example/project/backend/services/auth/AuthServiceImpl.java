@@ -41,7 +41,7 @@ public class AuthServiceImpl implements AuthService{
 
         user.setEmail(signupRequest.getEmail());
         user.setName(signupRequest.getName());
-        user.setPassword(new BCryptPasswordEncoder().encode(signupRequest.getPassword()));
+        user.setPassword(bCryptPasswordEncoder.encode(signupRequest.getPassword()));
         user.setRole(signupRequest.getUserRole() != null ? signupRequest.getUserRole() : UserRole.PATIENT);
 
         if (signupRequest.getUserRole() == UserRole.DOCTOR) {
@@ -82,7 +82,7 @@ public class AuthServiceImpl implements AuthService{
             user.setEmail("admin@gmail.com");
             user.setName("admin");
             user.setRole(UserRole.ADMIN);
-            user.setPassword(new BCryptPasswordEncoder().encode("admin"));
+            user.setPassword(bCryptPasswordEncoder.encode("admin"));
             userRepository.save(user);
         }
     }
