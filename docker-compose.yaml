@@ -18,7 +18,7 @@ services:
       - db:/data/db
 
   api_service:
-    build: .
+    image: elyesbali/back-app:latest
     container_name: api_service
     #restart: always
     ports:
